@@ -1,4 +1,4 @@
-package com.example.largeapkdownloader
+package com.marriott.largeapkdownloader
 
 import org.junit.Test
 

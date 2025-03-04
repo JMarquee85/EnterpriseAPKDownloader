@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Large APK Downloader"
 include(":app")
- 

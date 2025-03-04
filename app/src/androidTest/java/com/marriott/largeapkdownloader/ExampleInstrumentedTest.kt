@@ -1,4 +1,4 @@
-package com.example.largeapkdownloader
+package com.marriott.largeapkdownloader
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

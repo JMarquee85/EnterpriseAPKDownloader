@@ -3,18 +3,31 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+// Pull in temp S3 access keys
+val awsAccessKey: String? by project
+val awsSecretKey: String? by project
+
 android {
-    namespace = "com.example.largeapkdownloader"
+    namespace = "com.marriott.largeapkdownloader"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
-        applicationId = "com.example.largeapkdownloader"
+        applicationId = "com.marriott.largeapkdownloader"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Temp access keys
+        // Reference these in code as BuildConfig.AWS_ACCESS_KEY and BuildConfig.AWS_SECRET_KEY
+        buildConfigField("String", "AWS_ACCESS_KEY", "\"$awsAccessKey\"")
+        buildConfigField("String", "AWS_SECRET_KEY", "\"$awsSecretKey\"")
     }
 
     buildTypes {
@@ -38,6 +51,10 @@ android {
 dependencies {
     // Additional dependencies
     implementation(libs.aws.android.sdk.s3)
+    // Fix later with a reference to libs.versions.toml. Not working now and I don't have time to correct it.
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+//    implementation(libs.androidxWorkRuntimeKtx)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
