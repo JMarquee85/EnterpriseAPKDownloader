@@ -132,8 +132,8 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                     logEvent("Installing $appName. Installed version: $installedVersion, remote version: $remoteVersion")
 
                     // STEP 7: Download the APK.
-                    val apkFile = File(applicationContext.cacheDir, "downloaded_app.apk")
-                    val apkKey = "path/to/your/app.apk"  // <-- Update with your S3 key for the APK.
+                    val apkFile = File(applicationContext.cacheDir, "$appName.apk")
+                    val apkKey = "apks/$appName.apk"  // <-- Update with your S3 key for the APK.
                     val apkLatch = CountDownLatch(1)
                     var apkDownloaded = false
 

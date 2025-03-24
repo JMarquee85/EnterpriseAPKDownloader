@@ -89,6 +89,16 @@ An S3 bucket should be configured that contains:
 - A `manifest.json` file that determines actions to be taken on devices that are checking in
 - A `logs` directory that will be created if not exists when the app runs for the first time
 
+The name of the APK must match the appName outlined in the `manifest.json` exactly (see below for 
+more information about the `manifest.json`). 
+
+The APK will look something like this in all likelihood: 
+
+`com.example.app.apk`
+
+If the name does not match the appName as outlined in the `manifest.json`, the app installation will
+not succeed. 
+
 An IAM policy granting access to read and write to that bucket should be configured. 
 
 An IAM user with access to that IAM policy should be created and access keys and secret keys created. 
