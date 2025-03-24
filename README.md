@@ -81,13 +81,25 @@ If the Intune Managed App Configuration that contains the `deviceGroups` key-val
 the related applications should also be removed from the device. 
 
 
-#### S3 Bucket
+#### AWS S3 Bucket
 
 An S3 bucket should be configured that contains: 
 
 - The APK files to be installed
 - A `manifest.json` file that determines actions to be taken on devices that are checking in
 - A `logs` directory that will be created if not exists when the app runs for the first time
+
+An IAM policy granting access to read and write to that bucket should be configured. 
+
+An IAM user with access to that IAM policy should be created and access keys and secret keys created. 
+
+Currently the AWS Access Key and AWS Secret Key are expected in a local `local.properties` file as such:
+
+awsAccessKey={{the_access_key}}
+awsSecretKey={{the_secret_key}}
+
+This should be addressed differently soon. AWS Cognito to get short-lived credentials at runtime
+is an option that I might look into as development continues. 
 
 ##### manifest.json
 
