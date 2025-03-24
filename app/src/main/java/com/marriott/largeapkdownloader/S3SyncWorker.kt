@@ -1,10 +1,19 @@
 package com.marriott.largeapkdownloader
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.RestrictionsManager
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
@@ -12,6 +21,11 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import androidx.core.content.ContextCompat
+import android.provider.Settings
+import java.util.UUID
+
+
 
 class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
@@ -172,6 +186,9 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
             }
         }
 
+        // After processing, post a debug notification so IT can quickly access DebugActivity.
+        postDebugNotification()
+
         return Result.success()
     }
 
@@ -199,11 +216,18 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         applicationContext.startActivity(intent)
     }
 
-    // Helper function to log events.
     private fun logEvent(message: String) {
         Log.d("S3SyncWorker", "Log: $message")
-        val logFile = File(applicationContext.cacheDir, "sync_log.txt")
+        val deviceId = getDeviceUniqueId(applicationContext)
+        val logsDir = File(applicationContext.cacheDir, "logs")
+        if (!logsDir.exists()) logsDir.mkdirs()
+        val logFile = File(logsDir, "sync_log_$deviceId.txt")
         logFile.appendText("${System.currentTimeMillis()}: $message\n")
+    }
+
+    // Helper function to get the device's unique identifier using Android ID.
+    private fun getDeviceUniqueId(context: Context): String {
+        return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
     }
 
     // Helper function to get the device's groups from Intune Managed App Configuration.
@@ -219,8 +243,61 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         }
     }
 
-    // Overloaded function to simplify calling getDeviceGroups without passing context repeatedly.
+    // Overloaded function for convenience.
     private fun getDeviceGroups(): List<String> {
         return getDeviceGroups(applicationContext)
+    }
+
+    // Helper function to post a notification that launches DebugActivity.
+    private fun postDebugNotification() {
+        // Create an intent to launch DebugActivity.
+        val intent = Intent(applicationContext, DebugActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build your notification.
+        val notification = NotificationCompat.Builder(applicationContext, "debug_channel")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Debug Info Available")
+            .setContentText("Tap to view device identifier")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(false)
+            .build()
+
+        // Check for POST_NOTIFICATIONS permission (only necessary on API 33+).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.w("S3SyncWorker", "POST_NOTIFICATIONS permission not granted, skipping notification.")
+                // Optionally log this event, but do not try to post the notification.
+                return
+            }
+        }
+        // Post the notification.
+        NotificationManagerCompat.from(applicationContext).notify(1001, notification)
+    }
+
+
+    // Helper function to create a notification channel (for Android O and above).
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "debug_channel"
+            val channelName = "Debug Notifications"
+            val channelDescription = "Channel for debug notifications"
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = channelDescription
+            }
+            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }
