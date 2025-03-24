@@ -23,7 +23,7 @@ class DebugActivity : AppCompatActivity() {
 
         // Create a GestureDetector to listen for a double-tap.
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent?): Boolean {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
                 val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
                 debugTextView.text = "Device Unique ID: $androidId"
                 return true
