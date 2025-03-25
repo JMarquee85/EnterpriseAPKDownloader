@@ -36,5 +36,10 @@ class S3Helper(context: Context) {
         downloadObserver.setTransferListener(listener)
     }
 
+    fun uploadLog(objectKey: String, sourceFile: File, listener: TransferListener) {
+        val uploadObserver = transferUtility.upload(bucketName, objectKey, sourceFile)
+        uploadObserver.setTransferListener(listener)
+    }
+
     // (Optionally) upload logs or other functions can be added here
 }

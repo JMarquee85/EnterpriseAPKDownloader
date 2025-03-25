@@ -11,7 +11,7 @@ class DownloaderApp : Application() {
         super.onCreate()
 
         // Schedule periodic work using WorkManager, currently set to every hour
-        val workRequest = PeriodicWorkRequestBuilder<S3SyncWorker>(1, TimeUnit.HOURS)
+        val workRequest = PeriodicWorkRequestBuilder<S3SyncWorker>(15, TimeUnit.MINUTES)
             .build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(

@@ -10,22 +10,20 @@ import android.content.RestrictionsManager
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import org.json.JSONObject
 import java.io.File
-import java.util.concurrent.CountDownLatch
-import androidx.core.content.ContextCompat
-import android.provider.Settings
 import java.util.UUID
-
-
+import java.util.concurrent.CountDownLatch
 
 class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
@@ -71,6 +69,7 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         val manifestJson = JSONObject(manifestContent)
         val appsArray = manifestJson.getJSONArray("apps")
         Log.d("S3SyncWorker", "Parsed manifest with ${appsArray.length()} app entries.")
+        logEvent("Parsed manifest with ${appsArray.length()} app entries.")
 
         // STEP 3: Determine the device's groups from Intune Managed App Configuration.
         val deviceGroups = getDeviceGroups(applicationContext)
@@ -104,6 +103,7 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                     logEvent("$appName uninstalled because device is not in target groups.")
                 } catch (e: Exception) {
                     Log.d("S3SyncWorker", "$appName is not installed.")
+                    logEvent("$appName is not installed.")
                 }
                 continue  // Skip further processing for this app.
             }
@@ -121,8 +121,10 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                 installedVersion = packageInfo.versionName?.toDoubleOrNull()
                 isAppInstalled = true
                 Log.d("S3SyncWorker", "Installed version for $appName: $installedVersion")
+                logEvent("Installed version for $appName: $installedVersion")
             } catch (e: Exception) {
                 Log.d("S3SyncWorker", "$appName is not installed.")
+                logEvent("$appName is not installed.")
             }
 
             // STEP 6: Decide what to do based on the action.
@@ -133,7 +135,7 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
 
                     // STEP 7: Download the APK.
                     val apkFile = File(applicationContext.cacheDir, "$appName.apk")
-                    val apkKey = "apks/$appName.apk"
+                    val apkKey = "apks/$appName.apk"  // <-- Update with your S3 key for the APK.
                     val apkLatch = CountDownLatch(1)
                     var apkDownloaded = false
 
@@ -189,6 +191,9 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         // After processing, post a debug notification so IT can quickly access DebugActivity.
         postDebugNotification()
 
+        // Attempt to upload local logs to S3.
+        uploadLogs(s3Helper)
+
         return Result.success()
     }
 
@@ -216,10 +221,12 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         applicationContext.startActivity(intent)
     }
 
+    // Helper function to log events locally to external files directory.
     private fun logEvent(message: String) {
         Log.d("S3SyncWorker", "Log: $message")
         val deviceId = getDeviceUniqueId(applicationContext)
-        val logsDir = File(applicationContext.cacheDir, "logs")
+        // Using external files directory for better accessibility:
+        val logsDir = File(applicationContext.getExternalFilesDir(null), "logs")
         if (!logsDir.exists()) logsDir.mkdirs()
         val logFile = File(logsDir, "sync_log_$deviceId.txt")
         logFile.appendText("${System.currentTimeMillis()}: $message\n")
@@ -277,14 +284,12 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 Log.w("S3SyncWorker", "POST_NOTIFICATIONS permission not granted, skipping notification.")
-                // Optionally log this event, but do not try to post the notification.
                 return
             }
         }
         // Post the notification.
         NotificationManagerCompat.from(applicationContext).notify(1001, notification)
     }
-
 
     // Helper function to create a notification channel (for Android O and above).
     private fun createNotificationChannel() {
@@ -298,6 +303,26 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
             }
             val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    // Helper function to upload the local log file to S3.
+    private fun uploadLogs(s3Helper: S3Helper) {
+        val deviceId = getDeviceUniqueId(applicationContext)
+        val logsDir = File(applicationContext.getExternalFilesDir(null), "logs")
+        val logFile = File(logsDir, "sync_log_$deviceId.txt")
+        if (logFile.exists()) {
+            // Create an S3 key that includes the device ID and a timestamp to avoid overwriting.
+            val s3LogKey = "logs/sync_log_${deviceId}_${System.currentTimeMillis()}.txt"
+            s3Helper.uploadLog(s3LogKey, logFile, object : TransferListener {
+                override fun onStateChanged(id: Int, state: TransferState?) {
+                    Log.d("S3SyncWorker", "Log upload state: $state")
+                }
+                override fun onProgressChanged(p0: Int, p1: Long, p2: Long) { }
+                override fun onError(id: Int, ex: Exception?) {
+                    Log.e("S3SyncWorker", "Error uploading logs", ex)
+                }
+            })
         }
     }
 }
