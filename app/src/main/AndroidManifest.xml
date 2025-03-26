@@ -1,6 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.marriott.largeapkdownloader">
+
+    <!-- Define a custom permission with signature protection -->
+    <permission
+        android:name="com.marriott.largeapkdownloader.TRIGGER_PERMISSION"
+        android:protectionLevel="signature"
+        android:label="Trigger Permission" />
 
     <!-- Required permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -34,6 +40,16 @@
         <!-- Register DebugActivity, but do not add a launcher intent filter -->
         <activity android:name=".DebugActivity"
             android:exported="false" />
+
+        <!-- Register TriggerReceiver with the custom signature-protected permission -->
+        <receiver
+            android:name=".TriggerReceiver"
+            android:exported="true"
+            android:permission="com.marriott.largeapkdownloader.TRIGGER_PERMISSION">
+            <intent-filter>
+                <action android:name="com.marriott.largeapkdownloader.TRIGGER_WORKER" />
+            </intent-filter>
+        </receiver>
 
         <!-- Other components -->
 

@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -22,7 +21,6 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import org.json.JSONObject
 import java.io.File
-import java.util.UUID
 import java.util.concurrent.CountDownLatch
 
 class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
@@ -239,15 +237,17 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
 
     // Helper function to get the device's groups from Intune Managed App Configuration.
     private fun getDeviceGroups(context: Context): List<String> {
-        val restrictionsManager = context.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
-        val config = restrictionsManager.applicationRestrictions
-        // Assume Intune pushes a key "deviceGroups" as a comma-separated string.
-        val groupsString = config.getString("deviceGroups")
-        return if (!groupsString.isNullOrBlank()) {
-            groupsString.split(",").map { it.trim() }
-        } else {
-            listOf("default")
-        }
+//        val restrictionsManager = context.getSystemService(Context.RESTRICTIONS_SERVICE) as RestrictionsManager
+//        val config = restrictionsManager.applicationRestrictions
+//        // Assume Intune pushes a key "deviceGroups" as a comma-separated string.
+//        val groupsString = config.getString("deviceGroups")
+//        return if (!groupsString.isNullOrBlank()) {
+//            groupsString.split(",").map { it.trim() }
+//        } else {
+//            listOf("default")
+//        }
+        // For debug purposes, always returning a list of default
+        return listOf("default")
     }
 
     // Overloaded function for convenience.
