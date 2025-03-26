@@ -26,6 +26,7 @@
         android:theme="@style/Theme.LargeAPKDownloader"
         tools:targetApi="31">
 
+
         <!-- FileProvider declaration -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -37,9 +38,18 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Register DebugActivity, but do not add a launcher intent filter -->
+<!--        &lt;!&ndash; Register DebugActivity, but do not add a launcher intent filter &ndash;&gt;-->
+<!--        <activity android:name=".DebugActivity"-->
+<!--            android:exported="false" />-->
+
         <activity android:name=".DebugActivity"
-            android:exported="false" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
 
         <!-- Register TriggerReceiver with the custom signature-protected permission -->
         <receiver
@@ -50,6 +60,13 @@
                 <action android:name="com.marriott.largeapkdownloader.TRIGGER_WORKER" />
             </intent-filter>
         </receiver>
+
+        <receiver android:name=".TestReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="com.marriott.largeapkdownloader.TEST_BROADCAST" />
+            </intent-filter>
+        </receiver>
+
 
         <!-- Other components -->
 

@@ -1,11 +1,16 @@
+import java.util.Properties
+
+val localProperties = Properties()
+localProperties.load(rootProject.file("local.properties").inputStream())
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
 
 // Pull in temp S3 access keys
-val awsAccessKey: String? by project
-val awsSecretKey: String? by project
+val awsAccessKey = localProperties.getProperty("awsAccessKey") ?: ""
+val awsSecretKey = localProperties.getProperty("awsSecretKey") ?: ""
 
 android {
     namespace = "com.marriott.largeapkdownloader"
@@ -19,8 +24,8 @@ android {
         applicationId = "com.marriott.largeapkdownloader"
         minSdk = 30
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.3"
+        versionCode = 6
+        versionName = "0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

@@ -22,17 +22,21 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     override fun doWork(): Result {
         Log.d("S3SyncWorker", "Starting S3 sync work.")
 
+        // Debug
+        Log.d("S3SyncWorker", "DEBUG S3AccessKey: ${BuildConfig.AWS_ACCESS_KEY}")
+
         val s3Helper = S3Helper(applicationContext)
 
         // STEP 1: Download the manifest JSON from S3.
         val manifestFile = File(applicationContext.cacheDir, "manifest.json")
-        val manifestKey = "path/to/manifest.json"  // <-- Update with your actual S3 key for the manifest.
+        val manifestKey = "manifest.json"
         val manifestLatch = CountDownLatch(1)
         var manifestDownloaded = false
 
@@ -55,7 +59,7 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
             }
         })
 
-        manifestLatch.await()
+        manifestLatch.await(2, TimeUnit.MINUTES) // Might want to change this prior to release.
         if (!manifestDownloaded) {
             Log.e("S3SyncWorker", "Manifest download failed.")
             logEvent("Manifest download failed.")

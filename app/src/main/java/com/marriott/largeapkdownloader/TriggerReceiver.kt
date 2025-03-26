@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 // This exists primarily for debugging purposes. If connected via adb, can attempt to manually
 // kick off a job with this command:
 
-// adb shell am broadcast -a com.marriott.largeapkdownloader.TRIGGER_WORKER
+// adb shell am broadcast -a com.marriott.largeapkdownloader.TRIGGER_WORKER -n com.marriott.largeapkdownloader/.TriggerReceiver
 
 class TriggerReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {

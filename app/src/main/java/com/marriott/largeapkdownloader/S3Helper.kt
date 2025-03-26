@@ -18,7 +18,7 @@ class S3Helper(context: Context) {
         val accessKey = BuildConfig.AWS_ACCESS_KEY
         val secretKey = BuildConfig.AWS_SECRET_KEY
         // Use the Regions enum to define your region (here: US_EAST_1)
-        val awsRegion: Region = Region.getRegion(Regions.US_EAST_1)
+        val awsRegion: Region = Region.getRegion(Regions.US_EAST_2)
 
         val credentials = com.amazonaws.auth.BasicAWSCredentials(accessKey, secretKey)
         // Use the constructor that accepts both credentials and region
