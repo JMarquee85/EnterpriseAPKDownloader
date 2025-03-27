@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.RestrictionsManager
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -164,14 +163,39 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                     if (apkDownloaded) {
                         // Trigger APK installation.
                         installApk(apkFile)
-                        logEvent("APK installed for $appName.")
+                        logEvent("APK installation initiated for $appName.")
+
+                        // Now check repeatedly if the app is installed.
+                        // Needs a fix.
+                        var attempt = 0
+                        val maxAttempts = 1
+                        var installed = false
+                        while (attempt < maxAttempts && !installed) {
+                            try {
+                                Thread.sleep(10000) // Wait for 10 seconds per attempt.
+                            } catch (e: InterruptedException) {
+                                // Handle if needed.
+                            }
+                            installed = isAppInstalled(applicationContext, appName)
+                            attempt++
+                            logEvent("Attempt $attempt: isAppInstalled: $installed")
+                        }
+                        if (installed) {
+                            logEvent("$appName installation verified on device after $attempt attempt(s).")
+                        } else {
+                            logEvent("$appName installation could not be verified after $maxAttempts attempts. Installation may have failed... Check on device to confirm.")
+                            return Result.failure()
+                        }
                     } else {
                         Log.e("S3SyncWorker", "APK download failed for $appName.")
                         logEvent("APK download failed for $appName.")
                         return Result.failure()
                     }
                 } else {
-                    Log.d("S3SyncWorker", "No installation needed for $appName. Installed version is up-to-date.")
+                    Log.d(
+                        "S3SyncWorker",
+                        "No installation needed for $appName. Installed version is up-to-date."
+                    )
                     logEvent("No installation needed for $appName. Installed version: $installedVersion, remote version: $remoteVersion")
                 }
             } else if (action.equals("REMOVE", ignoreCase = true)) {
@@ -327,6 +351,15 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                     Log.e("S3SyncWorker", "Error uploading logs", ex)
                 }
             })
+        }
+    }
+
+    private fun isAppInstalled(context: Context, packageName: String): Boolean {
+        return try {
+            context.packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
+            true
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
         }
     }
 }
