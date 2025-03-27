@@ -93,8 +93,8 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                 listOf("all")
             }
 
-            // Check if the device's groups intersect with the app's target groups.
-            if (deviceGroups.intersect(targetGroups.toSet()).isEmpty()) {
+            // If targetGroups contains "default", then skip the check.
+            if (!targetGroups.contains("default") && deviceGroups.intersect(targetGroups.toSet()).isEmpty()) {
                 Log.d("S3SyncWorker", "Device not targeted for $appName; targetGroups: $targetGroups, Device groups: $deviceGroups")
                 logEvent("Device not targeted for $appName; uninstalling if installed.")
                 // If the app is installed, uninstall it.
@@ -110,7 +110,7 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
                 continue  // Skip further processing for this app.
             }
 
-            // If the device is targeted for this app, process it.
+            // If the device is targeted (or targetGroups is "default"), process the app.
             Log.d("S3SyncWorker", "Processing $appName: action=$action, remoteVersion=$remoteVersion")
             logEvent("Processing manifest for $appName: action=$action, remoteVersion=$remoteVersion, targetGroups=$targetGroups")
 
