@@ -22,6 +22,9 @@ import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
@@ -247,15 +250,19 @@ class S3SyncWorker(context: Context, workerParams: WorkerParameters) : Worker(co
         applicationContext.startActivity(intent)
     }
 
-    // Helper function to log events locally to external files directory.
     private fun logEvent(message: String) {
         Log.d("S3SyncWorker", "Log: $message")
         val deviceId = getDeviceUniqueId(applicationContext)
-        // Using external files directory for better accessibility:
+        // Use external files directory for better accessibility:
         val logsDir = File(applicationContext.getExternalFilesDir(null), "logs")
         if (!logsDir.exists()) logsDir.mkdirs()
         val logFile = File(logsDir, "sync_log_$deviceId.txt")
-        logFile.appendText("${System.currentTimeMillis()}: $message\n")
+
+        // Create a timestamp in a human-readable format
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        // Append the timestamp and message
+        logFile.appendText("$timestamp: $message\n")
     }
 
     // Helper function to get the device's unique identifier using Android ID.

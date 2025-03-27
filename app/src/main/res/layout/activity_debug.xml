@@ -1,14 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:background="@android:color/white">
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp">
 
+    <!-- Device ID display -->
     <TextView
-        android:id="@+id/debugTextView"
-        android:layout_width="wrap_content"
+        android:id="@+id/deviceIdTextView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tap here to reveal device ID"
-        android:textSize="18sp" />
-</FrameLayout>
+        android:text="Device ID: "
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Log Display Section -->
+    <ScrollView
+        android:id="@+id/logScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#EEEEEE"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/logTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logs will appear here..."
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:padding="8dp" />
+    </ScrollView>
+
+    <!-- Button to manually trigger S3SyncWorker -->
+    <Button
+        android:id="@+id/triggerWorkerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manually Sync Apps"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
