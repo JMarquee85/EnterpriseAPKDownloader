@@ -24,8 +24,8 @@ android {
         applicationId = "com.marriott.largeapkdownloader"
         minSdk = 30
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.4"
+        versionCode = 8
+        versionName = "0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

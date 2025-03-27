@@ -38,10 +38,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-<!--        &lt;!&ndash; Register DebugActivity, but do not add a launcher intent filter &ndash;&gt;-->
-<!--        <activity android:name=".DebugActivity"-->
-<!--            android:exported="false" />-->
-
         <activity android:name=".DebugActivity"
             android:exported="true">
             <intent-filter>
@@ -52,6 +48,7 @@
 
 
         <!-- Register TriggerReceiver with the custom signature-protected permission -->
+        <!-- Should comment this out as a debug function prior to general release. -->
         <receiver
             android:name=".TriggerReceiver"
             android:exported="true"
@@ -66,9 +63,5 @@
                 <action android:name="com.marriott.largeapkdownloader.TEST_BROADCAST" />
             </intent-filter>
         </receiver>
-
-
-        <!-- Other components -->
-
     </application>
 </manifest>
